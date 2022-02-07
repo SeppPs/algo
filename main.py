@@ -1,4 +1,5 @@
 from tracemalloc import start
+
 import config
 import alpaca_trade_api as tradeapi
 from alpaca_trade_api.stream import Stream
@@ -7,6 +8,7 @@ from alpaca_trade_api.rest import REST, TimeFrame
 import pandas as pd
 from datetime import date, datetime
 import time
+import talib
 
 
 ##############################################################
@@ -15,7 +17,7 @@ import time
 # Ticker symbol and condition
 ticker = "AMC"
 condition = 0
-
+crypto = "BTCUSD"
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
 start_time = start_day1 + ' 03:00:00 AM'
@@ -49,7 +51,7 @@ except:
 ##############################################################
 ##############################################################
 
-api_data = REST(api_key, api_secret, data_url, api_version='v2')
+api_data = REST(api_key, api_secret, base_url, api_version='v2')
 
 while condition == 0:
 
@@ -57,22 +59,41 @@ while condition == 0:
 
     duration = time_now - start_time 
     # print(duration)                  
-    duration_in_min = int(duration.total_seconds()//60) + 1
-    data = api_data.get_bars(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_min, adjustment = 'raw').df
-    print(type(data))
-    data.index = data.index.tz_convert('US/Central')
-    data = data.resample('1Min').mean()
+    duration_in_1min = int(duration.total_seconds()//60) + 1
+    duration_in_5min = int(duration.total_seconds()//300) + 1
+    try:
+        data5 = api_data.get_bars(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_5min, adjustment = 'raw').df
+        data1 = api_data.get_bars(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_1min, adjustment = 'raw').df
+    except:
+        print('Data download failed.')
+    # data = api_data.get_barset(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_min).df
+    print(type(data5))
+    data5.index = data5.index.tz_convert('US/Central')
+    data1.index = data1.index.tz_convert('US/Central')
+    data1 = data1.resample('1Min').mean()
+    data1['close'] = talib.RSI(data1["close"])
+    data5 = data5.resample('5Min').mean()
+    data5['close'] = talib.RSI(data5["close"])
     # print(duration_in_min)
 
-    # 
-    condition = 1
-
-
-# data.to_csv('data.csv')
-# data['close'].plot()
-# plt.savefig('AMC.png')
-
+#     # 
+#     condition = 1
 print(data.head())
 print('\n')
 print(data.tail())
+
+# stream = Stream(api_key,
+#                 api_secret,
+#                 base_url='https://paper-api.alpaca.markets')
+
+# async def trade_callback(t):
+#     # print('close', t)
+#     return print(t)
+
+# async def quote_callback(q):
+#     print('quote', q)
+
+# stream.subscribe_crypto_bars(trade_callback, crypto)
+# # stream.subscribe_crypto_quotes(quote_callback, crypto)
+# stream.run()
 
