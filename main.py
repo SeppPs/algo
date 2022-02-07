@@ -13,7 +13,7 @@ import time
 # Assign constant variables and use in the rest of the script.
 ##############################################################
 ticker = 'AMC'
-condition = 0
+condition = 1
 start_day = date.today()
 api_key = config.api_key
 api_secret = config.api_secret
