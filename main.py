@@ -28,6 +28,7 @@ api_key = config.api_key
 api_secret = config.api_secret
 base_url = config.base_url
 data_url = config.data_url
+crypto_url = config.crypto_url
 ##############################################################
 ##############################################################
 
@@ -51,7 +52,7 @@ except:
 ##############################################################
 ##############################################################
 
-api_data = REST(api_key, api_secret, base_url, api_version='v2')
+api_data = REST(api_key, api_secret, data_url, api_version='v2')
 
 while condition == 0:
 
@@ -62,38 +63,27 @@ while condition == 0:
     duration_in_1min = int(duration.total_seconds()//60) + 1
     duration_in_5min = int(duration.total_seconds()//300) + 1
     try:
-        data5 = api_data.get_bars(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_5min, adjustment = 'raw').df
-        data1 = api_data.get_bars(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_1min, adjustment = 'raw').df
+        data5 = api_data.get_barset(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_5min).df
+        data1 = api_data.get_barset(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_1min).df
     except:
         print('Data download failed.')
-    # data = api_data.get_barset(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_min).df
-    print(type(data5))
+    
     data5.index = data5.index.tz_convert('US/Central')
+    data5 = data5[data5.index >= start_day1]
     data1.index = data1.index.tz_convert('US/Central')
-    data1 = data1.resample('1Min').mean()
-    data1['close'] = talib.RSI(data1["close"])
-    data5 = data5.resample('5Min').mean()
-    data5['close'] = talib.RSI(data5["close"])
+    data1 = data1[data1.index >= start_day1]
+
+
+    # data1 = data1.resample('1Min').mean()
+    # print(data1.isna())
+    # data1['rsi'] = talib.RSI(data1["close"])
+    # data5 = data5.resample('5Min').mean()
+    # data5['rsi'] = talib.RSI(data5["close"])
+    # print(data1)
+    # print(data5.tail())
+    # print(data1.shape)
+    condition = 1
     # print(duration_in_min)
-
-#     # 
-#     condition = 1
-print(data.head())
-print('\n')
-print(data.tail())
-
-# stream = Stream(api_key,
-#                 api_secret,
-#                 base_url='https://paper-api.alpaca.markets')
-
-# async def trade_callback(t):
-#     # print('close', t)
-#     return print(t)
-
-# async def quote_callback(q):
-#     print('quote', q)
-
-# stream.subscribe_crypto_bars(trade_callback, crypto)
-# # stream.subscribe_crypto_quotes(quote_callback, crypto)
-# stream.run()
-
+data1.to_csv('data.csv')
+data1[ticker]['close'].plot()
+plt.savefig('AMC.png')
