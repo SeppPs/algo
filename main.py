@@ -90,7 +90,7 @@ while condition == 0:
         time.sleep(3)
 
         if data5.rsi[-1] < 30:
-            print(f"Buy signal at {time.strftime('%H:%M:%S')} ") 
+            print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
         elif data5.rsi[-1] > 60:
             print(f"Sell signal at {time.strftime('%H:%M:%S')} ") 
 
