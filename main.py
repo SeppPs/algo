@@ -62,7 +62,8 @@ api_data = REST(api_key, api_secret, data_url, api_version='v2')
 
 while condition == 0:
 
-    if time.localtime().tm_sec == 3:
+
+    if time.localtime().tm_sec == 5:
 
         time_now = datetime.now()#, '%d/%m/%y %H:%M:%S')
 
@@ -79,21 +80,25 @@ while condition == 0:
             print('Data download failed.')
         
         # 
-        data5 = data5[data5.index >= start_day1]
-        data1.index = data1.index.tz_convert('US/Central')
-        data1 = data1[data1.index >= start_day1]
-        data1 = data1.resample('1Min').mean().bfill()
-        data1['rsi'] = talib.RSI(data1[ticker]["close"])
-        data5 = data5.resample('5Min').mean()
-        data5['rsi'] = talib.RSI(data5[ticker]["close"])
-        print(data1.rsi.iloc[-1])
-        time.sleep(3)
+        try:
+            data5 = data5[data5.index >= start_day1]
+            data1.index = data1.index.tz_convert('US/Central')
+            data1 = data1[data1.index >= start_day1]
+            data1 = data1.resample('1Min').mean().bfill()
+            data1['rsi'] = talib.RSI(data1[ticker]["close"])
+            data5 = data5.resample('5Min').mean()
+            data5['rsi'] = talib.RSI(data5[ticker]["close"])
+            print(data1.rsi.iloc[-1])
 
-        if data5.rsi[-1] < 30:
-            print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
-        elif data5.rsi[-1] > 60:
-            print(f"Sell signal at {time.strftime('%H:%M:%S')} ") 
+            if data5.rsi[-1] < 30:
+                print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
+            elif data5.rsi[-1] > 60:
+                print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+        except:
+            print('No data is downloaded.')
+
+        time.sleep(1) 
 
 
 
-data1.to_csv('data1.csv')
+# data1.to_csv('data1.csv')

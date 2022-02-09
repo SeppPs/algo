@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 classifier = pipeline('sentiment-analysis')
 # classifier = pipeline('sentiment-analysis')
 
-ticker = 'CMG'
+ticker = 'AMC'
 
 async def news_data_handler(news):
 
@@ -47,10 +47,12 @@ base_url = config.base_url
 data_url = config.data_url
 crypto_url = config.crypto_url
 #######################################################
+
 # rest_client = REST(api_key, api_secret)
-# news = rest_client.get_news("ENPH", start="2022-02-02", limit=1)
+# news = rest_client.get_news(ticker, start="2022-02-02", limit=1)
 
 # news1 = news.pop()
+# print(news1)
 # summary = news1.summary
 # headline = news1.headline
 
@@ -71,11 +73,11 @@ crypto_url = config.crypto_url
     
 # elif sentiment[0]['label'] == 'NEGATIVE' and sentiment[0]['score'] > 0:
 #     print('EXP news negative')
-#     # rest_client.submit_order(XPO, -100)
+    # rest_client.submit_order(XPO, -100)
 
 print('\n')
 print('\n')
-print(f'Waiting for the news come from {ticker} ...')
+print(f'Waiting for the news for {ticker} ...')
 print('\n')
 print('\n')
 
@@ -84,4 +86,4 @@ stream_client.subscribe_news(news_data_handler, ticker)
 stream_client.run()
 
 
-
+print('Bibo')
