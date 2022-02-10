@@ -5,4 +5,4 @@ The data are provided by combining yahoo finance data provider and alpaca API.
 
 ## Methodology
 
-\item Here
+- item Here
