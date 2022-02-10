@@ -19,15 +19,13 @@ warnings.filterwarnings("ignore")
 ##############################################################
 # Initialization and constants
 ticker = "AMC" # Ticker symbol(s) that we are checking
-buy = 0 # The buy constant indicates that whether if an order is filled or submitted
+buy = 0 # The buy constant indicates that whether an order is filled/submitted or not.
+
 
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
 start_time = start_day1 + ' 03:00:00 AM'
 start_time = datetime.strptime(start_time, '%Y-%m-%d %H:%M:%S %p')
-
-
-
 
 # Account information
 api_key = config.api_key
@@ -61,13 +59,13 @@ except:
 api_data = REST(api_key, api_secret, data_url, api_version='v2')
 
 
-
+condition = 0
 
 while condition == 0:
 
-
-
-    if time.localtime().tm_sec == 5:
+    if time.localtime().tm_sec%5 == 0:
+        
+        time1 = time.time()
 
         time_now = datetime.now()#, '%d/%m/%y %H:%M:%S')
 
@@ -84,7 +82,10 @@ while condition == 0:
             df1 = yf.download(ticker, start=start_day1, interval='1m').tz_convert('US/Central')
             df1.drop(['Adj Close'], axis = 1, inplace = True)
             df1.columns = ['open', 'high','low', 'close', 'volume']
+        except:
+            print('Morning data downloader failed.')
 
+        try:
             data1 = df2.append(df1, ignore_index=False)
 
             df2 = api_data.get_bars(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_5min).df.tz_convert('US/Central')
@@ -98,29 +99,30 @@ while condition == 0:
 
             data5 = df2.append(df1, ignore_index=False)
 
-
         except:
-            print('Data download failed.')
+            print('Intraday data downloader failed.')
         
-        # 
+        
         try:
             data1['rsi'] = talib.RSI(data1["close"])
             data5['rsi'] = talib.RSI(data5["close"])
             print(data5.rsi.iloc[-1])
+        
+            print(f'Execution time: {(time.time() - time1)} seconds')
 
             
             if data5.rsi[-1] < 30:
                 print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
 
-                if not buy:
-                    tradeapi.submit_order(
-                        symbol=ticker,
-                        side='buy',
-                        type='market',
-                        qty='100',
-                        time_in_force='day',
-                    )
-                    buy = True
+                # if not buy:
+                #     tradeapi.submit_order(
+                #         symbol=ticker,
+                #         side='buy',
+                #         type='market',
+                #         qty='100',
+                #         time_in_force='day',
+                #     )
+                #     buy = True
                 
 
 
@@ -132,4 +134,4 @@ while condition == 0:
         except:
             print('No data is downloaded.')
 
-        time.sleep(1)
+        
