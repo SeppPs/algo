@@ -13,7 +13,7 @@ warnings.filterwarnings("ignore")
 classifier = pipeline('sentiment-analysis')
 # classifier = pipeline('sentiment-analysis')
 
-ticker = 'AMC'
+ticker = 'SPY'
 
 async def news_data_handler(news):
 
@@ -85,5 +85,3 @@ stream_client = Stream(api_key, api_secret)
 stream_client.subscribe_news(news_data_handler, ticker)
 stream_client.run()
 
-
-print('Bibo')

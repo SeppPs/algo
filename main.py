@@ -1,5 +1,5 @@
 from tracemalloc import start
-
+import yfinance as yf
 import config
 import alpaca_trade_api as tradeapi
 from alpaca_trade_api.stream import Stream
@@ -17,10 +17,10 @@ warnings.filterwarnings("ignore")
 ##############################################################
 # Assign constant variables and use in the rest of the script.
 ##############################################################
-# Ticker symbol and condition
-ticker = "AMC"
-condition = 0
-crypto = "BTCUSD"
+# Initialization and constants
+ticker = "AMC" # Ticker symbol(s) that we are checking
+buy = 0 # The buy constant indicates that whether if an order is filled or submitted
+
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
 start_time = start_day1 + ' 03:00:00 AM'
@@ -60,7 +60,11 @@ except:
 
 api_data = REST(api_key, api_secret, data_url, api_version='v2')
 
+
+
+
 while condition == 0:
+
 
 
     if time.localtime().tm_sec == 5:
@@ -72,33 +76,60 @@ while condition == 0:
         duration_in_1min = int(duration.total_seconds()//60) + 1
         duration_in_5min = int(duration.total_seconds()//300) + 1
         try:
-            data5 = api_data.get_barset(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_1min).df
-            data5.index = data5.index.tz_convert('US/Central')
-            data1 = api_data.get_barset(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_5min).df
-            data1.index = data1.index.tz_convert('US/Central')
+            df2 = api_data.get_bars(ticker, timeframe = "1Min", start = start_day1, limit = duration_in_1min).df.tz_convert('US/Central')
+            df2 = df2[(df2.index >= start_day1) & (df2.index < '08:30:00')]
+            df2.index.names = ['DateTime']
+            df2.drop(['trade_count', 'vwap'], axis = 1, inplace = True)
+
+            df1 = yf.download(ticker, start=start_day1, interval='1m').tz_convert('US/Central')
+            df1.drop(['Adj Close'], axis = 1, inplace = True)
+            df1.columns = ['open', 'high','low', 'close', 'volume']
+
+            data1 = df2.append(df1, ignore_index=False)
+
+            df2 = api_data.get_bars(ticker, timeframe = "5Min", start = start_day1, limit = duration_in_5min).df.tz_convert('US/Central')
+            df2 = df2[(df2.index >= start_day1) & (df2.index < '08:30:00')]
+            df2.index.names = ['DateTime']
+            df2.drop(['trade_count', 'vwap'], axis = 1, inplace = True)
+
+            df1 = yf.download(ticker, start=start_day1, interval='5m').tz_convert('US/Central')
+            df1.drop(['Adj Close'], axis = 1, inplace = True)
+            df1.columns = ['open', 'high','low', 'close', 'volume']
+
+            data5 = df2.append(df1, ignore_index=False)
+
+
         except:
             print('Data download failed.')
         
         # 
         try:
-            data5 = data5[data5.index >= start_day1]
-            data1.index = data1.index.tz_convert('US/Central')
-            data1 = data1[data1.index >= start_day1]
-            data1 = data1.resample('1Min').mean().bfill()
-            data1['rsi'] = talib.RSI(data1[ticker]["close"])
-            data5 = data5.resample('5Min').mean()
-            data5['rsi'] = talib.RSI(data5[ticker]["close"])
-            print(data1.rsi.iloc[-1])
+            data1['rsi'] = talib.RSI(data1["close"])
+            data5['rsi'] = talib.RSI(data5["close"])
+            print(data5.rsi.iloc[-1])
 
+            
             if data5.rsi[-1] < 30:
                 print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
-            elif data5.rsi[-1] > 60:
+
+                if not buy:
+                    tradeapi.submit_order(
+                        symbol=ticker,
+                        side='buy',
+                        type='market',
+                        qty='100',
+                        time_in_force='day',
+                    )
+                    buy = True
+                
+
+
+
+
+
+            elif data5.rsi[-1] > 70:
                 print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
         except:
             print('No data is downloaded.')
 
-        time.sleep(1) 
-
-
-
-# data1.to_csv('data1.csv')
+        time.sleep(1)
