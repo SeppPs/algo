@@ -19,10 +19,12 @@ warnings.filterwarnings("ignore")
 # Assign constant variables and use in the rest of the script.
 ##############################################################
 # Initialization and constants
-ticker = "AMC" # Ticker symbol(s) that we are checking
-buy = True # This boolean variable indicates that whether an order is filled/submitted or not.
+ticker = "F" # Ticker symbol(s) that we are checking
+buy = False # This boolean variable indicates that whether an order is filled/submitted or not.
 RIS_up = 70
 RIS_low = 30
+percent_gain = 0.8 # Once every trade hits the percent gain, it generates a sell signal to liquidate the position and realize the gain
+N = 5000 # The amount spent for buying or selling each security
 
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
@@ -60,7 +62,7 @@ condition = 0
 
 while condition == 0:
 
-    if time.localtime().tm_sec%10 == 0:
+    if time.localtime().tm_sec%6 == 0:
         
         time1 = time.time()
 
@@ -103,27 +105,47 @@ while condition == 0:
         try:
             data1['rsi'] = talib.RSI(data1["close"])
             data5['rsi'] = talib.RSI(data5["close"])
-
-            data5.to_csv(ticker+'.csv')
             print(f'RSI is at {np.round(data5.rsi.iloc[-1], 2)}')
             print(f'Execution time: {(time.time() - time1)} seconds')
             
             if data5.rsi[-1] < RIS_low:
-                print(1)
-                # print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
-
-                # if not buy:
-                #     tradeapi.submit_order(
-                #         symbol=ticker,
-                #         side='buy',
-                #         type='market',
-                #         qty='100',
-                #         time_in_force='day',
-                #     )
-                #     buy = True
+                if not buy:
+                    api_account.submit_order(
+                        symbol=ticker,
+                        side='buy',
+                        type='market',
+                        qty=np.round(N/data1.close[-1]),
+                        time_in_force='day',
+                    )
+                    buy = True
+                    print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
+                    print(f'Buy {np.round(N/data1.close[-1])} of {ticker} at {np.round(data1.close[-1], 2)}.')
                     
+                    position = api_data.get_position(ticker)
+                    cost_basis = position.avg_entry_price
+                    quantity = position.qty
+
+
             elif data5.rsi[-1] > RIS_up:
-                print(2)
-                # print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+                print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+            
+            try:
+                if (data1.close[-1] >= (1 + percent_gain/100) * cost_basis):
+                    print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+
+                    if buy:
+                        api_account.submit_order(
+                            symbol=ticker,
+                            side='sell',
+                            type='market',
+                            qty= quantity,
+                            time_in_force='day',
+                        )
+                        buy = False
+                        print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+                        print(f'Sell {quantity} of {ticker} at {np.round(data1.close[-1], 2)}.')
+            except:
+                pass
+
         except:
-            print('No data is downloaded.')
+            print('Loop not complete.')
