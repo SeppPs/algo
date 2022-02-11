@@ -19,12 +19,12 @@ warnings.filterwarnings("ignore")
 # Assign constant variables and use in the rest of the script.
 ##############################################################
 # Initialization and constants
-ticker = "F" # Ticker symbol(s) that we are checking
+ticker = "SOFI" # Ticker symbol(s) that we are checking.
 buy = False # This boolean variable indicates that whether an order is filled/submitted or not.
 RIS_up = 70
 RIS_low = 30
-percent_gain = 0.8 # Once every trade hits the percent gain, it generates a sell signal to liquidate the position and realize the gain
-N = 5000 # The amount spent for buying or selling each security
+percent_gain = 0.5 # Once every trade hits the percent gain, it generates a sell signal to liquidate the position and realize the gain.
+N = 10000 # The amount spent in dollars for buying or selling a security.
 
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
