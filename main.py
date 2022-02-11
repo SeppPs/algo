@@ -9,6 +9,7 @@ import pandas as pd
 from datetime import date, datetime
 import time
 import talib
+import numpy as np
 
 import warnings
 warnings.filterwarnings("ignore")
@@ -19,8 +20,9 @@ warnings.filterwarnings("ignore")
 ##############################################################
 # Initialization and constants
 ticker = "AMC" # Ticker symbol(s) that we are checking
-buy = 0 # The buy constant indicates that whether an order is filled/submitted or not.
-
+buy = True # This boolean variable indicates that whether an order is filled/submitted or not.
+RIS_up = 70
+RIS_low = 30
 
 # Datetime object for reading the data
 start_day1 = date.today().strftime('%Y-%m-%d')
@@ -47,23 +49,18 @@ try:
     print(f'Cash available: {account.cash}', end='\n')
     print(f'Buying power: {account.buying_power}', end='\n')
 
-    time.sleep(1)
-
 except:
-
     print('Account authentication failed')
-    time.sleep(1)
 ##############################################################
 ##############################################################
 
 api_data = REST(api_key, api_secret, data_url, api_version='v2')
 
-
 condition = 0
 
 while condition == 0:
 
-    if time.localtime().tm_sec%5 == 0:
+    if time.localtime().tm_sec%10 == 0:
         
         time1 = time.time()
 
@@ -106,13 +103,14 @@ while condition == 0:
         try:
             data1['rsi'] = talib.RSI(data1["close"])
             data5['rsi'] = talib.RSI(data5["close"])
-            print(data5.rsi.iloc[-1])
-        
-            print(f'Execution time: {(time.time() - time1)} seconds')
 
+            data5.to_csv(ticker+'.csv')
+            print(f'RSI is at {np.round(data5.rsi.iloc[-1], 2)}')
+            print(f'Execution time: {(time.time() - time1)} seconds')
             
-            if data5.rsi[-1] < 30:
-                print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
+            if data5.rsi[-1] < RIS_low:
+                print(1)
+                # print(f"Buy signal at {time.strftime('%H:%M:%S')} ")
 
                 # if not buy:
                 #     tradeapi.submit_order(
@@ -123,15 +121,9 @@ while condition == 0:
                 #         time_in_force='day',
                 #     )
                 #     buy = True
-                
-
-
-
-
-
-            elif data5.rsi[-1] > 70:
-                print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
+                    
+            elif data5.rsi[-1] > RIS_up:
+                print(2)
+                # print(f"Sell signal at {time.strftime('%H:%M:%S')} ")
         except:
             print('No data is downloaded.')
-
-        
