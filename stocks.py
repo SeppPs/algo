@@ -97,7 +97,6 @@ while condition == 0:
             df1.columns = ['open', 'high','low', 'close', 'volume']
 
             data5 = df2.append(df1, ignore_index=False)
-
         except:
             print('Intraday data downloader failed.')
         
