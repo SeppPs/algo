@@ -40,81 +40,49 @@ data_url = config.data_url
 crypto_url = config.crypto_url
 ##############################################################
 async def trade_callback(t):
-    print(t)
-    # if 'F' in t.conditions:
-    #     print(f'Sweep order detected at {t.timestamp}')
-    #     print(f'Order type: {t.conditions}')
-    #     print(f'Price at {t.price}')
+    # print(t.size, ticker, t.takerside)
+    if (t.size >= 0.01) and (t.takerside == 'B'):
+        print(f'Large buy order detected at {t.timestamp}')
+        print(f'Price at {t.price}')
+        print(f'Order size of {t.size}')
+        print('#############################')
 
-    #     api_account.submit_order(
-    #                     symbol=ticker,
-    #                     side='buy',
-    #                     type='market',
-    #                     qty=100,
-    #                     time_in_force='day',
-    #                 )
-    #     time.sleep(1)
-    #     position = api_account.get_position(ticker)
-    #     cost_basis = position.avg_entry_price
-    #     quantity = position.qty
-        
-    #     api_account.submit_order(
-    #                     symbol=ticker,
-    #                     side='sell',
-    #                     type='limit',
-    #                     limit_price= np.round(cost_basis*1.003),
-    #                     qty=quantity,
-    #                     time_in_force='day',
-    #                 )
-    #     print('Orders were submitted')
+        w = str(t.size) + ' , ' + str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
+        with open('large_orders.txt', 'a') as file:
+            file.write(w)
+            file.close()
 
-async def quote_callback(q, buy):
-    # print('quote', q)
-    if q.ask_size - q.bid_size >= 5:
-        print(f'Buy signal is generate at {np.round((q.bid_price), 2)}')
-        print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-        print('\n')
+    if (t.size >= 0.01) and (t.takerside == 'S'):
+        print(f'Large sell order detected at {t.timestamp}')
+        print(f'Price at {t.price}')
+        print(f'Order size of {t.size}')
+        print('#############################')
+        w = str(t.size) + ' , ' +  str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
+        with open('large_orders.txt', 'a') as file:
+            file.write(w)
+            file.close()
+# async def quote_callback(q):
+#     # print('quote', q)
+#     if q.ask_size - q.bid_size >= 8:
+#         print(f'Buy signal is generate at {np.round((q.bid_price), 2)}')
+#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+#         print('\n')
 
-        if not BUY:
-            api_account.submit_order(
-                        symbol=ticker,
-                        side='buy',
-                        type='market',
-                        qty=0.5,
-                        time_in_force='day',
-                    )
-            BUY = True
-
-        if BUY:
-            position = api_account.get_position(ticker)
-            cost_basis = position.avg_entry_price
-            quantity = position.qty                       
-
-            api_account.submit_order(
-                        symbol=ticker,
-                        side='sell',
-                        type='limit',
-                        limit_price= np.round(cost_basis*1.007),
-                        qty=quantity,
-                        time_in_force='day',
-                    )
-            BUY = False
-
-    # if q.ask_size - q.bid_size <= -10:
-    #     print(f'Sell signal is generate at {np.round((q.ask_price), 2)}')
-    #     print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-    #     print('\n')
+#     if q.ask_size - q.bid_size <= -8:
+#         print(f'Sell signal is generate at {np.round((q.ask_price), 2)}')
+#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+#         print('\n')
 ##############################################################
 
 try:
     api_account = REST(api_key, api_secret, base_url, api_version='v2')
     account = api_account.get_account()
-    print('##################################')
+    print('#############################')
     print('ACCOUNT INFORMATION:')
     print(f'Cash status: {account.status}', end='\n')
     print(f'Cash available: {account.cash}', end='\n')
     print(f'Buying power: {account.buying_power}', end='\n')
-    print('##################################')
+    print('#############################')
 
 except:
     print('Account authentication failed')
@@ -127,9 +95,9 @@ stream = Stream(api_key,
             api_secret,
             base_url=base_url)
 
-# stream.subscribe_crypto_trades(trade_callback, ticker)
-stream.subscribe_crypto_quotes(quote_callback, ticker)
+stream.subscribe_crypto_trades(trade_callback, ticker)
+# stream.subscribe_crypto_quotes(quote_callback, ticker)
 print('\n \n \n')
 print('Start:')
-print('##################################')
+print('#############################')
 stream.run()

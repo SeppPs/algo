@@ -40,11 +40,12 @@ data_url = config.data_url
 crypto_url = config.crypto_url
 ##############################################################
 async def trade_callback(t):
-    if 'F' in t.conditions:
+    if ('F' in t.conditions) and (t.size > 400):
+        print(t)
         print(f'Sweep order detected at {t.timestamp}')
         print(f'Order type: {t.conditions}')
         print(f'Price at {t.price}')
-
+        
         api_account.submit_order(
                         symbol=ticker,
                         side='buy',
@@ -52,31 +53,37 @@ async def trade_callback(t):
                         qty=100,
                         time_in_force='day',
                     )
-        time.sleep(1)
-        position = api_account.get_position(ticker)
-        cost_basis = position.avg_entry_price
-        quantity = position.qty
         
-        api_account.submit_order(
-                        symbol=ticker,
-                        side='sell',
-                        type='limit',
-                        limit_price= np.round(cost_basis*1.003),
-                        qty=quantity,
-                        time_in_force='day',
-                    )
-        print('Orders were submitted')
+        w = str(t.size) + ' , ' +  str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
+        with open('large_orders' + ticker + '.txt', 'a') as file:
+            file.write(w)
+            file.close()
+        print(t.price)
+        # time.sleep(1)
+        # position = api_account.get_position(ticker)
+        # cost_basis = position.avg_entry_price
+        # quantity = position.qty
+        
+        # api_account.submit_order(
+        #                 symbol=ticker,
+        #                 side='sell',
+        #                 type='limit',
+        #                 limit_price= np.round(cost_basis*1.003),
+        #                 qty=quantity,
+        #                 time_in_force='day',
+        #             )
+        # print('Orders were submitted')
 
-async def quote_callback(q):
-    # print('quote', q)
-    if q.ask_size - q.bid_size >= 10:
-        print(f'Buy signal is generate at {np.round((q.ask_price), 2)}')
-        print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-        print('\n')
-    if q.ask_size - q.bid_size <= -10:
-        print(f'Sell signal is generate at {np.round((q.bid_price), 2)}')
-        print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-        print('\n')
+# async def quote_callback(q):
+#     # print('quote', q)
+#     if q.ask_size - q.bid_size >= 10:
+#         print(f'Buy signal is generate at {np.round((q.ask_price), 2)}')
+#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+#         print('\n')
+#     if q.ask_size - q.bid_size <= -10:
+#         print(f'Sell signal is generate at {np.round((q.bid_price), 2)}')
+#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+#         print('\n')
 ##############################################################
 
 try:
@@ -92,7 +99,6 @@ try:
 except:
     print('Account authentication failed')
 
-time.sleep(1)
 
 
 
@@ -100,6 +106,7 @@ stream = Stream(api_key,
             api_secret,
             base_url=base_url,
             data_feed='iex')
+
 
 stream.subscribe_trades(trade_callback, ticker)
 # stream.subscribe_quotes(quote_callback, ticker)
