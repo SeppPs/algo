@@ -40,25 +40,24 @@ data_url = config.data_url
 crypto_url = config.crypto_url
 ##############################################################
 async def trade_callback(t):
-    # print(t.size, ticker, t.takerside)
-    if (t.size >= 0.01) and (t.takerside == 'B'):
+    # print(t)
+    if (t.size >= 1) and (t.takerside == 'B'):
         print(f'Large buy order detected at {t.timestamp}')
         print(f'Price at {t.price}')
         print(f'Order size of {t.size}')
         print('#############################')
-
-        w = str(t.size) + ' , ' + str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
-        with open('large_orders.txt', 'a') as file:
+        w = str(t.timestamp) + ', ' + str(t.size) + ', ' + str(t.price) + ', ' + t.takerside + '\n'
+        with open('large_orders' + ticker + '.txt', 'a') as file:
             file.write(w)
             file.close()
 
-    if (t.size >= 0.01) and (t.takerside == 'S'):
+    if (t.size >= 1) and (t.takerside == 'S'):
         print(f'Large sell order detected at {t.timestamp}')
         print(f'Price at {t.price}')
         print(f'Order size of {t.size}')
         print('#############################')
-        w = str(t.size) + ' , ' +  str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
-        with open('large_orders.txt', 'a') as file:
+        w = str(t.timestamp) + ', ' + str(t.size) + ', ' + str(t.price) + ', ' + t.takerside + '\n'
+        with open('large_orders' + ticker + '.txt', 'a') as file:
             file.write(w)
             file.close()
 # async def quote_callback(q):

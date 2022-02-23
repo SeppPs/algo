@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 # Assign constant variables and use in the rest of the script.
 ##############################################################
 # Initialization and constants
-ticker = "AMC" # Ticker symbol(s) that we are checking.
+ticker = "DWAC" # Ticker symbol(s) that we are checking.
 buy = False # This boolean variable indicates that whether an order is filled/submitted or not.
 RIS_up = 70
 RIS_low = 30
@@ -40,25 +40,40 @@ data_url = config.data_url
 crypto_url = config.crypto_url
 ##############################################################
 async def trade_callback(t):
-    if ('F' in t.conditions) and (t.size > 400):
-        print(t)
-        print(f'Sweep order detected at {t.timestamp}')
-        print(f'Order type: {t.conditions}')
-        print(f'Price at {t.price}')
-        
-        api_account.submit_order(
+    print(t)
+
+    try:
+        if ('F' in t.conditions)and (t.size > 500) and (not api_account.list_positions()):
+            api_account.submit_order(
+                            symbol=ticker,
+                            side='buy',
+                            type='market',
+                            qty=np.round(500/t.price),
+                            time_in_force='day',
+                        )
+            time.sleep(0.4)
+            api_account.submit_order(
                         symbol=ticker,
-                        side='buy',
-                        type='market',
-                        qty=100,
-                        time_in_force='day',
-                    )
-        
-        w = str(t.size) + ' , ' +  str(t.price) + ' , ' + t.takerside + ' , ' + str(t.timestamp) + '\n'
-        with open('large_orders' + ticker + '.txt', 'a') as file:
-            file.write(w)
-            file.close()
-        print(t.price)
+                        side='sell',
+                        type='trailing_stop',
+                        trail_price = 0.25,
+                        qty=np.round(500/t.price)
+                            )
+
+            print('##################################')
+            print(t)
+            print(f'Sweep order of {t.size} shares detected at {t.timestamp}')
+            print(f'Order type: {t.conditions}')
+            print(f'Price at {t.price}')
+
+            w = str(t.size) + ' , ' +  str(t.price) + ' , ' + str(t.timestamp) + ' , ' + t.symbol + '\n'
+            with open('large_orders' + ticker + '.txt', 'a') as file:
+                file.write(w)
+                file.close()
+
+
+    except:
+        print('Order not filled')
         # time.sleep(1)
         # position = api_account.get_position(ticker)
         # cost_basis = position.avg_entry_price
@@ -100,13 +115,10 @@ except:
     print('Account authentication failed')
 
 
-
-
 stream = Stream(api_key,
             api_secret,
             base_url=base_url,
-            data_feed='iex')
-
+            data_feed='sip')
 
 stream.subscribe_trades(trade_callback, ticker)
 # stream.subscribe_quotes(quote_callback, ticker)

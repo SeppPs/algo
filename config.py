@@ -1,5 +1,5 @@
-api_key = 'PK0LS8DH7E4SSKU9YGW8'
-api_secret = 'N2woRIuKz6pHCbeAVzPEHwjVTWsPmLZpFzP36nzK'
+api_key = 'PKI79PFNSQVHPU90BB8G'
+api_secret = '4IaicmYIJyxyISaM7SPDuuHlPqe6vMw5X5grsgqa'
 base_url = 'https://paper-api.alpaca.markets'
 data_url = 'https://data.alpaca.markets/v2'
 crypto_url = 'https://api.alternative.me/v2/ticker/Bitcoin/?convert=USD'
