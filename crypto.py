@@ -38,9 +38,10 @@ api_secret = config.api_secret
 base_url = config.base_url
 data_url = config.data_url
 crypto_url = config.crypto_url
+
 ##############################################################
 async def trade_callback(t):
-    # print(t)
+    print(t)
     if (t.size >= 1) and (t.takerside == 'B'):
         print(f'Large buy order detected at {t.timestamp}')
         print(f'Price at {t.price}')
@@ -60,17 +61,17 @@ async def trade_callback(t):
         with open('large_orders' + ticker + '.txt', 'a') as file:
             file.write(w)
             file.close()
-# async def quote_callback(q):
-#     # print('quote', q)
-#     if q.ask_size - q.bid_size >= 8:
-#         print(f'Buy signal is generate at {np.round((q.bid_price), 2)}')
-#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-#         print('\n')
+async def quote_callback(q):
+    print('quote', q)
+    # if q.ask_size - q.bid_size >= 8:
+    #     print(f'Buy signal is generate at {np.round((q.bid_price), 2)}')
+    #     print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+    #     print('\n')
 
-#     if q.ask_size - q.bid_size <= -8:
-#         print(f'Sell signal is generate at {np.round((q.ask_price), 2)}')
-#         print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
-#         print('\n')
+    # if q.ask_size - q.bid_size <= -8:
+    #     print(f'Sell signal is generate at {np.round((q.ask_price), 2)}')
+    #     print(f'Difference is {q.ask_size - q.bid_size} at     {q.timestamp}')
+    #     print('\n')
 ##############################################################
 
 try:

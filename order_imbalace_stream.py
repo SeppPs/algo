@@ -20,7 +20,7 @@ warnings.filterwarnings("ignore")
 # Assign constant variables and use in the rest of the script.
 ##############################################################
 # Initialization and constants
-ticker = "DWAC" # Ticker symbol(s) that we are checking.
+ticker = "AMC" # Ticker symbol(s) that we are checking.
 buy = False # This boolean variable indicates that whether an order is filled/submitted or not.
 RIS_up = 70
 RIS_low = 30
@@ -41,24 +41,36 @@ crypto_url = config.crypto_url
 ##############################################################
 async def trade_callback(t):
     print(t)
-
+    # and (t.size > 1400) and (t.size > 4000) 
     try:
-        if ('F' in t.conditions)and (t.size > 500) and (not api_account.list_positions()):
+        if ('F' in t.conditions) and (t.size >= 100) and (not api_account.list_positions()):
             api_account.submit_order(
-                            symbol=ticker,
+                            symbol='AMC',
                             side='buy',
                             type='market',
-                            qty=np.round(500/t.price),
+                            qty=60,
                             time_in_force='day',
                         )
-            time.sleep(0.4)
-            api_account.submit_order(
-                        symbol=ticker,
+            time.sleep(1)
+            print(f'Sweep order of {t.size} shares detected at {t.timestamp}')
+        time.sleep(1)
+        if (api_account.list_positions()):
+            if (t.price > float(api_account.list_positions()[0].avg_entry_price) + 0.03) and not (api_account.list_orders()):
+                api_account.submit_order(
+                        symbol='AMC',
                         side='sell',
-                        type='trailing_stop',
-                        trail_price = 0.25,
-                        qty=np.round(500/t.price)
+                        type='market',
+                        qty=60
                             )
+            elif not (api_account.list_orders()):
+                time.sleep(1)
+                api_account.submit_order(
+                            symbol='AMC',
+                            side='sell',
+                            type='trailing_stop',
+                            trail_price = 0.03,
+                            qty=60
+                                )
 
             print('##################################')
             print(t)
@@ -73,7 +85,8 @@ async def trade_callback(t):
 
 
     except:
-        print('Order not filled')
+        print('The program exits.')
+        quit()
         # time.sleep(1)
         # position = api_account.get_position(ticker)
         # cost_basis = position.avg_entry_price
